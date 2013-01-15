@@ -6,7 +6,7 @@ Gem::Specification.new do |s|
   s.name        = "check_graphite"
   s.version     = CheckGraphite::VERSION
   s.authors     = ["Pierre-Yves Ritschard"]
-  s.email       = ["pyr@spootnik.org"]
+  s.email       = ["pyr@spootnik.org", "braeuer.jens@gmail.com"]
   s.homepage    = "https://github.com/pyr/check-graphite"
   s.summary     = %q{check_graphite}
   s.description = %q{check values from a graphite server}
