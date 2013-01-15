@@ -3,6 +3,13 @@ require "fake_web"
 
 require "check_graphite"
 
+def silently(&block)
+  original_verbosity = $VERBOSE
+  $VERBOSE = nil
+  yield
+  $VERBOSE = original_verbosity
+end
+
 describe CheckGraphite::Command do
   before do
     FakeWeb.allow_net_connect = false
@@ -16,14 +23,14 @@ describe CheckGraphite::Command do
     end
 
     it "should just work" do
-      ARGV = %w{ -H http://your.graphite.host/render -M collectd.somebox.load.load.midterm }
+      silently { ARGV = %w{ -H http://your.graphite.host/render -M collectd.somebox.load.load.midterm } }
       c = CheckGraphite::Command.new
       STDOUT.should_receive(:puts).with("OK: value=2.0|value=2.0;;;;")
       lambda { c.run }.should raise_error SystemExit
     end
 
     it "should be critical" do
-      ARGV = %w{ -H http://your.graphite.host/render -M collectd.somebox.load.load.midterm -c 0 }
+      silently { ARGV = %w{ -H http://your.graphite.host/render -M collectd.somebox.load.load.midterm -c 0 } }
       c = CheckGraphite::Command.new
       STDOUT.should_receive(:puts).with("CRITICAL: value=2.0|value=2.0;;;;")
       lambda { c.run }.should raise_error SystemExit
@@ -41,14 +48,14 @@ describe CheckGraphite::Command do
     end
 
     it "should work with valid username and password" do
-      ARGV = %w{ -H http://your.graphite.host/render -M collectd.somebox.load.load.midterm -U testuser -P testpass}
+      silently { ARGV = %w{ -H http://your.graphite.host/render -M collectd.somebox.load.load.midterm -U testuser -P testpass} }
       c = CheckGraphite::Command.new
       STDOUT.should_receive(:puts).with("OK: value=2.0|value=2.0;;;;")
       lambda { c.run }.should raise_error SystemExit
     end
 
     it "should fail with bad username and password" do
-      ARGV = %w{ -H http://your.graphite.host/render -M collectd.somebox.load.load.midterm -U baduser -P badpass }
+      silently { ARGV = %w{ -H http://your.graphite.host/render -M collectd.somebox.load.load.midterm -U baduser -P badpass } }
       c = CheckGraphite::Command.new
       STDOUT.should_receive(:puts).with(/UNKNOWN: INTERNAL ERROR: (RuntimeError: )?HTTP error code 401/)
       lambda { c.run }.should raise_error SystemExit
