@@ -26,27 +26,23 @@ module CheckGraphite
       req = Net::HTTP::Get.new(uri.request_uri)
 
       # use basic auth if username is set
-      if options.username
-        req.basic_auth options.username, options.password
+      req.basic_auth(options.username, options.password) if options.username
+
+      res = Net::HTTP.start(uri.host, uri.port) do |http|
+        http.request(req)
       end
 
-      res = Net::HTTP.start(uri.host, uri.port) { |http|
-        http.request(req)
-      }
-
-      res.code == "200" || raise("HTTP error code #{res.code}")
+      raise("HTTP error code #{res.code}") unless res.code == "200"
 
       datapoints = JSON(res.body).first["datapoints"]
-      res = datapoints.drop(options.dropfirst).
-                      take(datapoints.length - options.dropfirst - options.droplast).
-                      reduce({:sum => 0.0, :count => 0}) {|acc, e|
-        if e[0]
-          {:sum => acc[:sum] + e[0], :count => acc[:count] + 1}
-        else
-          acc
-        end
-      }
+      datapoints = datapoints.drop(options.dropfirst)
+      datapoints = datapoints.take(datapoints.length - options.dropfirst - options.droplast)
+      datapoints = datapoints.select { |e| e[0] } # Filter 'null' values
+      res = datapoints.reduce({:sum => 0.0, :count => 0})  do |acc, e|
+        {:sum => acc[:sum] + e[0], :count => acc[:count] + 1}
+      end
       raise "no valid datapoints" if res[:count] == 0
+
       value = res[:sum] / res[:count]
       store_value options.name, value
       store_message "#{options.name}=#{value}"
