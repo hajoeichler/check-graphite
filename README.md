@@ -1,5 +1,7 @@
 check_graphite is a nagios module to query graphite
 
+[![Build Status](https://secure.travis-ci.org/jbraeuer/check-graphite.png)](http://travis-ci.org/jbraeuer/check-graphite)
+
 ## Example
 
 check_graphite -H 'http://my.graphite.host
