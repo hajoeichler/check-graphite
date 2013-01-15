@@ -1,4 +1,5 @@
-#!/usr/bin/env ruby
+#!/usr/bin/ruby1.9.1
 
 require 'check_graphite'
+
 CheckGraphite::Command.new.run
