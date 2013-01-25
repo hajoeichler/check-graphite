@@ -16,6 +16,7 @@ module CheckGraphite
     on "--password PASSWORD", "-P PASSWORD"
     on "--dropfirst N", "-A N", Integer, :default => 0
     on "--droplast N", "-Z N", Integer, :default => 0
+    on "--takelast N", "-T N", Integer, :default => nil
 
     enable_warning
     enable_critical
@@ -35,8 +36,12 @@ module CheckGraphite
       raise("HTTP error code #{res.code}") unless res.code == "200"
 
       datapoints = JSON(res.body).first["datapoints"]
-      datapoints = datapoints.drop(options.dropfirst)
-      datapoints = datapoints.take(datapoints.length - options.dropfirst - options.droplast)
+      unless options.takelast
+        datapoints = datapoints.drop(options.dropfirst)
+        datapoints = datapoints.take(datapoints.length - options.dropfirst - options.droplast)
+      else
+        datapoints = datapoints.drop(datapoints.length - options.takelast)
+      end
       datapoints = datapoints.select { |e| e[0] } # Filter 'null' values
       res = datapoints.reduce({:sum => 0.0, :count => 0})  do |acc, e|
         {:sum => acc[:sum] + e[0], :count => acc[:count] + 1}
